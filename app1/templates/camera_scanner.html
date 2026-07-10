@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>البوابة الذكية - {{ event.title }}</title>
+    
+    <!-- استدعاء خط Cairo الاحترافي وأيقونات FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    
+    <!-- مكتبة HTML5-QRCode لقراءة الـ QR باحترافية وسرعة -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        :root {
+            --canvas-bg: #030712;
+            --surface-card: #0b1329;
+            --surface-inner: #1c2541;
+            --text-glow: #f8fafc;
+            --text-dim: #94a3b8;
+            --neon-cyan: #06b6d4;
+            --neon-emerald: #10b981;
+            --neon-rose: #f43f5e;
+            --border-glow: rgba(6, 182, 212, 0.15);
+            --border-subtle: rgba(255, 255, 255, 0.05);
+        }
+
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: var(--canvas-bg); 
+            color: var(--text-glow);
+            margin: 0; 
+            padding: 25px;
+            letter-spacing: -0.3px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .workspace {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* الهيدر البانورامي */
+        .panoramic-header {
+            background: radial-gradient(circle at top left, rgba(6, 182, 212, 0.1), transparent), var(--surface-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .header-meta h1 { margin: 0; font-size: 22px; font-weight: 800; color: #fff; }
+        .header-meta p { margin: 6px 0 0 0; color: var(--text-dim); font-size: 13px; }
+        .header-meta strong { color: var(--neon-cyan); }
+
+        .btn-back-dashboard {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-glow);
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-back-dashboard:hover { background: var(--surface-inner); color: var(--neon-cyan); border-color: var(--neon-cyan); }
+
+        /* منطقة الكاميرا الرئيسية والمسح الضوئي */
+        .scanner-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 25px;
+        }
+        @media(max-width: 768px) { .scanner-grid { grid-template-columns: 1fr; } }
+
+        .camera-viewport-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* الإطار المستقبلي حول عدسة الكاميرا */
+        .camera-wrapper {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border-subtle);
+            aspect-ratio: 4/3;
+        }
+
+        #reader {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+        }
+        #reader video { object-fit: cover !important; }
+
+        /* خط الليزر المتحرك للمسح */
+        .laser-line {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(to right, transparent, var(--neon-cyan), transparent);
+            box-shadow: 0 0 12px var(--neon-cyan);
+            animation: scanAnimation 2.5s linear infinite;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        @keyframes scanAnimation {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        /* شاشة عرض النتائج والملاحظات اللحظية */
+        .feedback-hub {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 250px;
+        }
+
+        .status-display-icon {
+            width: 80px; height: 80px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; color: var(--text-dim);
+            margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .status-display-title { font-size: 18px; font-weight: 800; margin: 0 0 8px 0; color: var(--text-glow); }
+        .status-display-subtitle { font-size: 13px; color: var(--text-dim); margin: 0; max-width: 240px; line-height: 1.6; }
+
+        /* الأنماط المتغيرة للنتائج (نجاح، خروج، خطأ) */
+        .state-success .status-display-icon { background: rgba(16, 185, 129, 0.1); color: var(--neon-emerald); border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); transform: scale(1.1); }
+        .state-success .status-display-title { color: var(--neon-emerald); }
+
+        .state-out .status-display-icon { background: rgba(6, 182, 212, 0.1); color: var(--neon-cyan); border-color: rgba(6, 182, 212, 0.3); box-shadow: 0 0 20px rgba(6, 182, 212, 0.15); transform: scale(1.1); }
+        .state-out .status-display-title { color: var(--neon-cyan); }
+
+        .state-error .status-display-icon { background: rgba(244, 63, 94, 0.1); color: var(--neon-rose); border-color: rgba(244, 63, 94, 0.3); box-shadow: 0 0 20px rgba(244, 63, 94, 0.15); transform: scale(1.1); }
+        .state-error .status-display-title { color: var(--neon-rose); }
+    </style>
+</head>
+<body>
+
+<div class="workspace">
+    <!-- البانوراما هيدر -->
+    <div class="panoramic-header">
+        <div class="header-meta">
+            <h1>عدسة المسح الآلي الذكي</h1>
+            <p>بوابة التحضير المباشر لفعالية: <strong>{{ event.title }}</strong></p>
+        </div>
+        <a href="{% url 'event_control_dashboard' event.id %}" class="btn-back-dashboard">
+            <i class="fa-solid fa-arrow-left"></i> العودة للوحة الإدارة
+        </a>
+    </div>
+
+    <!-- شبكة تشغيل البوابة الخلفية والكاميرا -->
+    <div class="scanner-grid">
+        
+        <!-- الكاميرا المستقلة -->
+        <div class="camera-viewport-card">
+            <div class="camera-wrapper">
+                <div class="laser-line"></div>
+                <div id="reader"></div>
+            </div>
+        </div>
+
+        <!-- مركز التغذية الراجعة الفوري للنتائج -->
+        <div class="feedback-hub" id="feedbackHub">
+            <div class="status-display-icon" id="statusIcon">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <h3 class="status-display-title" id="statusTitle">في انتظار المسح...</h3>
+            <p class="status-display-subtitle" id="statusSubtitle">ضع كود الـ QR الخاص بالتذكرة أمام الكاميرا ليتم تسجيل الحضور تلقائياً فوراً.</p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let isProcessing = false; // لمنع تكرار القراءة في نفس الأجزاء من الثانية
+
+    // دالة إرسال الكود المستخرج إلى واجهة الـ API ومعالجة النتيجة فورياً دون الانتقال لصفحة أخرى
+    function handleScannedCode(ticketCode) {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        const feedbackHub = document.getElementById('feedbackHub');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusSubtitle = document.getElementById('statusSubtitle');
+
+        // تحديث المظهر لحالة المعالجة المؤقتة
+        feedbackHub.className = "feedback-hub";
+        statusIcon.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" style="color: var(--neon-cyan)"></i>`;
+        statusTitle.innerText = "جاري التحقق من الكود...";
+        statusSubtitle.innerText = "يتم مراجعة قاعدة البيانات اللحظية الآن.";
+
+        // إرسال الطلب المباشر للـ API الذي أعددناه مسبقاً في الـ URL المنظم
+        fetch(`/attendee/${ticketCode}/toggle/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(res => {
+            if (res.status === 404) {
+                throw new Error("invalid_code");
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                if (data.status === "checked_in") {
+                    // حالة الدخول الناجح
+                    feedbackHub.className = "feedback-hub state-success";
+                    statusIcon.innerHTML = `<i class="fa-solid fa-shield-check"></i>`;
+                    statusTitle.innerText = "✅ تم تسجيل الدخول";
+                    statusSubtitle.innerText = `أهلاً بك مجدداً: ${data.attendee_name}\nوقت الدخول: ${data.check_in_time}`;
+                } else {
+                    // حالة الخروج الناجح
+                    feedbackHub.className = "feedback-hub state-out";
+                    statusIcon.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i>`;
+                    statusTitle.innerText = "👋 تم تسجيل الخروج";
+                    statusSubtitle.innerText = `رافقتك السلامة: ${data.attendee_name}\nتم مغادرة القاعة بنجاح.`;
+                }
+            } else {
+                throw new Error("failed");
+            }
+        })
+        .catch(err => {
+            // حالة الكود غير الصالح أو غير المسجل
+            feedbackHub.className = "feedback-hub state-error";
+            statusIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+            statusTitle.innerText = "❌ رمز غير صالح";
+            statusSubtitle.innerText = "هذا الرمز التذكاري غير مسجل بالنظام أو تم حذفه مسبقاً.";
+        })
+        .finally(() => {
+            // إعادة ضبط الحساس بعد ثانيتين للسماح بمسح البطاقة التالية
+            setTimeout(() => {
+                isProcessing = false;
+            }, 2500);
+        });
+    }
+
+    // تشغيل كاشف الكاميرا تلقائياً فور تحميل الواجهة
+    function startScanner() {
+        const html5QrcodeScanner = new Html5Qrcode("reader");
+        
+        html5QrcodeScanner.start(
+            { facingMode: "environment" }, // تشغيل الكاميرا الخلفية للهواتف
+            {
+                fps: 10,       // عدد الفريمات للفحص بالثانية
+                qrbox: { width: 250, height: 250 } // تحديد منطقة القراءة البؤرية
+            },
+            (decodedText, decodedResult) => {
+                // عند نجاح قراءة الـ QR النصي يتم تمريره فوراً للـ API
+                handleScannedCode(decodedText);
+            },
+            (errorMessage) => {
+                // التغاضي عن أخطاء الفريمات العادية عند عدم وجود كود QR في الإطار
+            }
+        ).catch(err => {
+            console.error("خطأ في تشغيل الكاميرا: ", err);
+            document.getElementById('statusTitle').innerText = "خطأ في صلاحية الكاميرا";
+            document.getElementById('statusSubtitle').innerText = "يرجى منح الصفحة صلاحية الوصول إلى الكاميرا للبدء.";
+        });
+    }
+
+    // إطلاق العدسة الذكية فور جاهزية الصفحة
+    document.addEventListener("DOMContentLoaded", startScanner);
+</script>
+
+</body>
+</html>
