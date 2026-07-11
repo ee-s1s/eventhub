@@ -138,6 +138,7 @@
             align-items: center;
             text-align: center;
             min-height: 250px;
+            transition: all 0.3s ease;
         }
 
         .status-display-icon {
@@ -152,7 +153,7 @@
         }
 
         .status-display-title { font-size: 18px; font-weight: 800; margin: 0 0 8px 0; color: var(--text-glow); }
-        .status-display-subtitle { font-size: 13px; color: var(--text-dim); margin: 0; max-width: 240px; line-height: 1.6; }
+        .status-display-subtitle { font-size: 13px; color: var(--text-dim); margin: 0; max-width: 240px; line-height: 1.6; white-space: pre-line; }
 
         .state-success .status-display-icon { background: rgba(16, 185, 129, 0.1); color: var(--neon-emerald); border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); transform: scale(1.1); }
         .state-success .status-display-title { color: var(--neon-emerald); }
@@ -172,8 +173,9 @@
             <h1>عدسة المسح الآلي الذكي</h1>
             <p>بوابة التحضير المباشر لفعالية: <strong>{{ event.title }}</strong></p>
         </div>
-        <a href="{% url 'event_control_dashboard' event.id %}" class="btn-back-dashboard">
-            <i class="fa-solid fa-arrow-left"></i> العودة للوحة الإدارة
+        <!-- تم التأكد من صحة الربط التلقائي بلوحة الإدارة -->
+        <a href="/{{ event.id }}/dashboard/" class="btn-trigger-scan">
+            <i class="fa-solid fa-gauge"></i> لوحة التحكم (Dashboard)
         </a>
     </div>
 
@@ -197,12 +199,25 @@
 
 <script>
     let isProcessing = false;
+    const feedbackHub = document.getElementById('feedbackHub');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusSubtitle = document.getElementById('statusSubtitle');
+
+    function resetScannerState() {
+        feedbackHub.className = "feedback-hub";
+        statusIcon.innerHTML = `<i class="fa-solid fa-qrcode"></i>`;
+        statusTitle.innerText = "في انتظار المسح...";
+        statusSubtitle.innerText = "ضع كود الـ QR الخاص بالتذكرة أمام الكاميرا ليتم تسجيل الحضور تلقائياً فوراً.";
+        isProcessing = false;
+    }
 
     function handleScannedCode(decodedText) {
         if (isProcessing) return;
         isProcessing = true;
 
         let ticketCode = decodedText.trim();
+        // ميكانيكية ذكية لاستخلاص كود التذكرة الفعلي سواء كان رابطاً كاملاً أو مجرد نص
         if (ticketCode.includes('/verify/')) {
             const parts = ticketCode.split('/verify/');
             if (parts.length > 1) {
@@ -210,11 +225,7 @@
             }
         }
 
-        const feedbackHub = document.getElementById('feedbackHub');
-        const statusIcon = document.getElementById('statusIcon');
-        const statusTitle = document.getElementById('statusTitle');
-        const statusSubtitle = document.getElementById('statusSubtitle');
-
+        // تحويل فوري للحالة إلى نمط التحميل لمنع نقرات مكررة
         feedbackHub.className = "feedback-hub";
         statusIcon.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" style="color: var(--neon-cyan)"></i>`;
         statusTitle.innerText = "جاري التحقق من الكود...";
@@ -227,9 +238,7 @@
             }
         })
         .then(res => {
-            if (res.status === 404) {
-                throw new Error("invalid_code");
-            }
+            if (res.status === 404) throw new Error("invalid_code");
             return res.json();
         })
         .then(data => {
@@ -238,12 +247,12 @@
                     feedbackHub.className = "feedback-hub state-success";
                     statusIcon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
                     statusTitle.innerText = "✅ تم تسجيل الدخول";
-                    statusSubtitle.innerText = `أهلاً بك مجدداً: ${data.attendee_name}\nوقت الدخول: ${data.check_in_time}`;
+                    statusSubtitle.innerText = `الاسم: ${data.attendee_name}\nوقت الحضور: ${data.check_in_time}`;
                 } else {
                     feedbackHub.className = "feedback-hub state-out";
                     statusIcon.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i>`;
                     statusTitle.innerText = "👋 تم تسجيل الخروج";
-                    statusSubtitle.innerText = `رافقتك السلامة: ${data.attendee_name}\nتم مغادرة القاعة بنجاح.`;
+                    statusSubtitle.innerText = `الاسم: ${data.attendee_name}\nتم تسجيل المغادرة بنجاح.`;
                 }
             } else {
                 throw new Error("failed");
@@ -253,12 +262,11 @@
             feedbackHub.className = "feedback-hub state-error";
             statusIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
             statusTitle.innerText = "❌ رمز غير صالح";
-            statusSubtitle.innerText = "هذا الرمز التذكاري غير مسجل بالنظام أو تم حذفه مسبقاً.";
+            statusSubtitle.innerText = "هذا الرمز التذكاري غير مسجل بالنظام أو انتهت صلاحيته.";
         })
         .finally(() => {
-            setTimeout(() => {
-                isProcessing = false;
-            }, 2500);
+            // إعادة التهيئة التلقائية بعد ثانية ونصف لاستقبال الكود التالي بسرعة فائقة بدون تعليق
+            setTimeout(resetScannerState, 1500);
         });
     }
 
@@ -268,18 +276,20 @@
         html5QrcodeScanner.start(
             { facingMode: "environment" },
             {
-                fps: 10,       
-                qrbox: { width: 250, height: 250 }
+                fps: 24, // زيادة عدد الإطارات لسرعة فائقة في اللقط والاستجابة
+                qrbox: null, // إلغاء الصندوق الثابت لتمكين مسح الكود من أي زاوية ومكان بداخل الشاشة
+                aspectRatio: 1.333334
             },
             (decodedText, decodedResult) => {
                 handleScannedCode(decodedText);
             },
             (errorMessage) => {
+                // تجاهل أخطاء عدم العثور اللحظي على الكود لضمان السلاسة وعدم تجميد الكاميرا
             }
         ).catch(err => {
             console.error("خطأ في تشغيل الكاميرا: ", err);
-            document.getElementById('statusTitle').innerText = "خطأ في صلاحية الكاميرا";
-            document.getElementById('statusSubtitle').innerText = "يرجى منح الصفحة صلاحية الوصول إلى الكاميرا للبدء.";
+            statusTitle.innerText = "خطأ في صلاحية الكاميرا";
+            statusSubtitle.innerText = "يرجى منح الصفحة صلاحية الوصول إلى الكاميرا للبدء.";
         });
     }
 
