@@ -181,13 +181,13 @@
             padding: 16px 20px;
             border-radius: 12px;
             display: grid;
-            grid-template-columns: 2fr 1.3fr 1.2fr 1fr auto;
+            grid-template-columns: 1.8fr 1.1fr 1.3fr 1.1fr auto auto;
             align-items: center;
             gap: 15px;
             transition: all 0.3s ease;
         }
         .cyber-item:hover { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.01); transform: translateX(-4px); }
-        @media(max-width: 850px) { .cyber-item { grid-template-columns: 1fr; gap: 12px; text-align: center; } }
+        @media(max-width: 1000px) { .cyber-item { grid-template-columns: 1fr; gap: 12px; text-align: center; } }
 
         .cyber-item.pulse-green { animation: pulseGreen 1s ease-out; }
         .cyber-item.pulse-gray { animation: pulseGray 1s ease-out; }
@@ -197,9 +197,10 @@
         .client-profile strong { display: block; font-size: 14px; font-weight: 700; color: #fff; }
         .client-profile span { font-size: 11px; color: var(--text-dim); font-family: monospace; }
         .client-phone { font-size: 13px; color: var(--text-dim); font-family: monospace; }
+        .client-email { font-size: 13px; color: var(--text-dim); word-break: break-all; }
 
         .media-cluster { display: flex; gap: 6px; align-items: center; justify-content: flex-start; }
-        @media(max-width: 850px) { .media-cluster { justify-content: center; } }
+        @media(max-width: 1000px) { .media-cluster { justify-content: center; } }
         .mini-qr { width: 42px; height: 42px; border-radius: 8px; border: 1px solid var(--border-subtle); cursor: pointer; transition: transform 0.2s; }
         .mini-qr:hover { transform: scale(1.1); }
         
@@ -213,7 +214,7 @@
         .pill-out { background: rgba(148, 163, 184, 0.1); color: var(--text-dim); border: 1px solid rgba(148, 163, 184, 0.15); }
 
         .management-actions { display: flex; gap: 8px; justify-content: flex-end; }
-        @media(max-width: 850px) { .management-actions { justify-content: center; } }
+        @media(max-width: 1000px) { .management-actions { justify-content: center; } }
         .btn-utility { border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; }
         .btn-edit-luxe { background: rgba(245, 158, 11, 0.1); color: var(--neon-amber); border: 1px solid rgba(245, 158, 11, 0.15); }
         .btn-edit-luxe:hover { background: var(--neon-amber); color: #000; }
@@ -340,7 +341,7 @@
         <div class="search-filter-box">
             <div class="search-engine-box">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" id="searchInput" class="search-engine-input" placeholder="محرك البحث الفوري الذكي... ابحث بالاسم، كود التذكرة أو رقم الجوال">
+                <input type="text" id="searchInput" class="search-engine-input" placeholder="محرك البحث الفوري الذكي... ابحث بالاسم، كود التذكرة، البريد أو رقم الجوال">
             </div>
             
             <div class="filter-tabs">
@@ -352,7 +353,7 @@
 
         <div class="cyber-list" id="guestsTable">
             {% for guest in guests %}
-            <div class="cyber-item" id="row-{{ guest.id }}" data-name="{{ guest.name }}" data-phone="{{ guest.phone|default:'' }}" data-code="{{ guest.ticket_code }}" data-checked="{% if guest.is_checked_in %}in{% else %}out{% endif %}">
+            <div class="cyber-item" id="row-{{ guest.id }}" data-name="{{ guest.name }}" data-phone="{{ guest.phone|default:'' }}" data-email="{{ guest.email|default:'' }}" data-code="{{ guest.ticket_code }}" data-checked="{% if guest.is_checked_in %}in{% else %}out{% endif %}">
                 
                 <div class="client-profile">
                     <strong id="name-td-{{ guest.id }}">{{ guest.name }}</strong>
@@ -361,6 +362,11 @@
 
                 <div class="client-phone" id="phone-td-{{ guest.id }}">
                     <i class="fa-solid fa-phone-flip" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>{{ guest.phone|default:"---" }}
+                </div>
+
+                <!-- إضافة عرض الإيميل في السطر -->
+                <div class="client-email" id="email-td-{{ guest.id }}">
+                    <i class="fa-solid fa-envelope" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>{{ guest.email|default:"---" }}
                 </div>
 
                 <div class="media-cluster">
@@ -434,6 +440,11 @@
                     <label>رقم الجوال أو الحساب الفعال:</label>
                     <input type="text" name="phone" class="custom-input" placeholder="مثال: 967777777777">
                 </div>
+                <!-- إضافة حقل البريد الإلكتروني في فورم الإضافة -->
+                <div class="form-group">
+                    <label>البريد الإلكتروني (إرسال التذكرة تلقائياً):</label>
+                    <input type="email" name="email" class="custom-input" placeholder="example@domain.com">
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="closeAddModal()">تراجع</button>
@@ -459,6 +470,11 @@
             <div class="form-group">
                 <label>رقم هاتف الاتصال والمشاركة:</label>
                 <input type="text" id="modal-phone-input" class="custom-input">
+            </div>
+            <!-- إضافة حقل البريد الإلكتروني في فورم التعديل -->
+            <div class="form-group">
+                <label>البريد الإلكتروني الحركي:</label>
+                <input type="email" id="modal-email-input" class="custom-input">
             </div>
         </div>
         <div class="modal-footer">
@@ -498,15 +514,17 @@
         let currentName = document.getElementById(`name-td-${id}`).innerText;
         let row = document.getElementById(`row-${id}`);
         let currentPhone = row.getAttribute('data-phone') || '';
+        let currentEmail = row.getAttribute('data-email') || ''; // التقاط الإيميل الحالي
 
         document.getElementById('modal-attendee-id').value = id;
         document.getElementById('modal-name-input').value = currentName;
         document.getElementById('modal-phone-input').value = currentPhone;
+        document.getElementById('modal-email-input').value = currentEmail; // تمريره للإنبوت
         document.getElementById('editModal').classList.add('active');
     }
     function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
 
-    // البحث والفلترة الذكية
+    // البحث والفلترة الذكية الشاملة
     let currentFilter = 'all';
     document.getElementById('searchInput').addEventListener('keyup', applySearchAndFilter);
 
@@ -524,10 +542,11 @@
         rows.forEach(row => {
             let name = row.getAttribute('data-name') ? row.getAttribute('data-name').toLowerCase() : '';
             let phone = row.getAttribute('data-phone') ? row.getAttribute('data-phone').toLowerCase() : '';
+            let email = row.getAttribute('data-email') ? row.getAttribute('data-email').toLowerCase() : ''; // إضافة فلترة البريد
             let code = row.getAttribute('data-code') ? row.getAttribute('data-code').toLowerCase() : '';
             let status = row.getAttribute('data-checked');
 
-            let matchesSearch = name.includes(filterText) || phone.includes(filterText) || code.includes(filterText);
+            let matchesSearch = name.includes(filterText) || phone.includes(filterText) || email.includes(filterText) || code.includes(filterText);
             let matchesTab = (currentFilter === 'all') || (currentFilter === 'in' && status === 'in') || (currentFilter === 'out' && status === 'out');
 
             row.style.display = (matchesSearch && matchesTab) ? 'grid' : 'none';
@@ -576,7 +595,7 @@
         let file = inputElement.files[0];
         let formData = new FormData();
         formData.append('file', file);
-        formData.append('event_id', '{{ event.id }}'); // إرسال الـ ID الخاص بالفعالية الحالية هنا
+        formData.append('event_id', '{{ event.id }}');
 
         fetch(`/attendee/import/`, {
             method: 'POST',
@@ -594,17 +613,18 @@
         }).catch(err => console.error(err));
     }
 
-    // تصدير ملف البيانات بصيغة CSV
+    // تصدير ملف البيانات بصيغة CSV (تحديث ليشمل البريد الإلكتروني)
     function exportToCSV() {
         let rows = document.querySelectorAll('#guestsTable .cyber-item');
-        let csvContent = "\uFEFFالاسم,رقم الهاتف,الكود الخاص,الحالة الحاليّة\n";
+        let csvContent = "\uFEFFالاسم,رقم الهاتف,البريد الإلكتروني,الكود الخاص,الحالة الحاليّة\n";
         
         rows.forEach(row => {
             let name = row.querySelector('.client-profile strong').innerText;
             let code = row.getAttribute('data-code');
             let phone = row.getAttribute('data-phone') || '';
+            let email = row.getAttribute('data-email') || '';
             let status = row.getAttribute('data-checked') === 'in' ? 'بالداخل' : 'بالخارج';
-            csvContent += `"${name}","${phone}","${code}","${status}"\n`;
+            csvContent += `"${name}","${phone}","${email}","${code}","${status}"\n`;
         });
 
         let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -629,17 +649,19 @@
         window.print();
     }
 
-    // إرسال طلب التعديل إلى السيرفر
+    // إرسال طلب التعديل إلى السيرفر (محدث لمعالجة الإيميل وإصلاح الأخطاء)
     function submitEditModal() {
         let id = document.getElementById('modal-attendee-id').value;
         let newName = document.getElementById('modal-name-input').value;
         let newPhone = document.getElementById('modal-phone-input').value;
+        let newEmail = document.getElementById('modal-email-input').value; // التقاط المدخل الجديد
 
         if (newName.trim() === "") return;
 
         let formData = new FormData();
         formData.append('name', newName);
         formData.append('phone', newPhone);
+        formData.append('email', newEmail); // إرساله للسيرفر
 
         fetch(`/attendee/${id}/edit/`, {
             method: 'POST',
@@ -649,11 +671,17 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                // تحديث النصوص في الواجهة تلقائياً
                 document.getElementById(`name-td-${id}`).innerText = data.name;
                 document.getElementById(`phone-td-${id}`).innerHTML = data.phone ? `<i class="fa-solid fa-phone-flip" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>${data.phone}` : '---';
+                document.getElementById(`email-td-${id}`).innerHTML = data.email ? `<i class="fa-solid fa-envelope" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>${data.email}` : '---';
+                
+                // تحديث الـ Data Attributes للبحث المباشر الفوري
                 let row = document.getElementById(`row-${id}`);
                 row.setAttribute('data-name', data.name);
-                row.setAttribute('data-phone', data.phone);
+                row.setAttribute('data-phone', data.phone || '');
+                row.setAttribute('data-email', data.email || '');
+                
                 closeEditModal();
                 calculateLiveStats();
                 applySearchAndFilter();

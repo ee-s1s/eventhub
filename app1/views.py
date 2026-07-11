@@ -21,8 +21,16 @@ def event_control_dashboard(request, event_id):
     if request.method == "POST" and "add_guest" in request.POST:
         name = request.POST.get('name')
         phone = request.POST.get('phone')
+        email = request.POST.get('email') # دمج استقبال حقل البريد الإلكتروني هنا
+        
         if name:
-            Attendee.objects.create(event=event, name=name, phone=phone)
+            # إضافة الحقل أثناء إنشاء الحاضر الجديد في قاعدة البيانات
+            Attendee.objects.create(
+                event=event, 
+                name=name, 
+                phone=phone, 
+                email=email if email else None
+            )
             messages.success(request, f"✅ تم إضافة {name} بنجاح.")
             return redirect('event_control_dashboard', event_id=event.id)
             
@@ -66,11 +74,15 @@ def edit_attendee_api(request, attendee_id):
         attendee = get_object_or_404(Attendee, id=attendee_id)
         attendee.name = request.POST.get('name', attendee.name)
         attendee.phone = request.POST.get('phone', attendee.phone)
+        attendee.email = request.POST.get('email', attendee.email) # دمج تحديث حقل البريد الإلكتروني هنا
         attendee.save()
+        
+        # إرجاع الإيميل المحدث في الاستجابة لتحديث الواجهة فوراً عبر الـ JavaScript
         return JsonResponse({
             'success': True, 
             'name': attendee.name, 
-            'phone': attendee.phone if attendee.phone else ''
+            'phone': attendee.phone if attendee.phone else '',
+            'email': attendee.email if attendee.email else ''
         })
     return JsonResponse({'success': False}, status=400)
 
@@ -103,12 +115,18 @@ def import_attendees_api(request):
             
             name_col = None
             phone_col = None
+            email_col = None
+            telegram_col = None
             
             for col in df.columns:
                 if any(kw in col for kw in ['اسم', 'name', 'full name', 'المدعو', 'الحاضر']):
                     name_col = col
                 if any(kw in col for kw in ['هاتف', 'جوال', 'phone', 'mobile', 'tel', 'رقم']):
                     phone_col = col
+                if any(kw in col for kw in ['ايميل', 'بريد', 'email', 'mail']):
+                    email_col = col
+                if any(kw in col for kw in ['تليجرام', 'تلغرام', 'telegram', 'chat_id', 'chat id']):
+                    telegram_col = col
 
             if not name_col:
                 return JsonResponse({
@@ -116,44 +134,62 @@ def import_attendees_api(request):
                     'error': f'لم يتم العثور على عمود الاسم. الأعمدة المتوفرة في ملفك هي: {list(df.columns)}'
                 }, status=400)
             
-            attendees_to_create = []
+            imported_count = 0
             
             for _, row in df.iterrows():
                 name = str(row[name_col]).strip()
-                phone = str(row[phone_col]).strip() if phone_col and pd.notna(row[phone_col]) else ''
                 
+                if not name or name.lower() == 'nan' or name == '':
+                    continue
+                    
+                phone = str(row[phone_col]).strip() if phone_col and pd.notna(row[phone_col]) else ''
                 if phone.endswith('.0'):
                     phone = phone[:-2]
+                    
+                email = str(row[email_col]).strip() if email_col and pd.notna(row[email_col]) else None
+                if email and (email.lower() == 'nan' or email == ''):
+                    email = None
+                    
+                telegram_id = str(row[telegram_col]).strip() if telegram_col and pd.notna(row[telegram_col]) else None
+                if telegram_id and (telegram_id.lower() == 'nan' or telegram_id == ''):
+                    telegram_id = None
+                if telegram_id and telegram_id.endswith('.0'):
+                    telegram_id = telegram_id[:-2]
                 
-                if name and name.lower() != 'nan' and name != '':
-                    ticket_code = generate_short_ticket_code()
-                    
-                    attendee = Attendee(
-                        event=event, 
-                        name=name, 
-                        phone=phone, 
-                        ticket_code=ticket_code
-                    )
-                    
-                    check_in_url = f"http://127.0.0.1:8000/verify/{ticket_code}/"
-                    
-                    qr = qrcode.QRCode(version=1, box_size=10, border=3)
-                    qr.add_data(check_in_url)
-                    qr.make(fit=True)
-                    img = qr.make_image(fill_color="black", back_color="white")
-                    
-                    blob = BytesIO()
-                    img.save(blob, 'PNG')
-                    blob.seek(0)
-                    
-                    attendee.qr_code.save(f'qr-{ticket_code}.png', File(blob), save=False)
-                    
-                    attendees_to_create.append(attendee)
-            
-            if attendees_to_create:
-                Attendee.objects.bulk_create(attendees_to_create)
+                ticket_code = generate_short_ticket_code()
                 
-            return JsonResponse({'success': True, 'count': len(attendees_to_create)})
+                attendee = Attendee(
+                    event=event, 
+                    name=name, 
+                    phone=phone, 
+                    email=email,
+                    telegram_chat_id=telegram_id,
+                    ticket_code=ticket_code
+                )
+                
+                check_in_url = f"http://127.0.0.1:8000/verify/{ticket_code}/"
+                
+                qr = qrcode.QRCode(version=1, box_size=10, border=3)
+                qr.add_data(check_in_url)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                blob = BytesIO()
+                img.save(blob, 'PNG')
+                blob.seek(0)
+                
+                attendee.qr_code.save(f'qr-{ticket_code}.png', File(blob), save=False)
+                
+                attendee.save()
+                
+                if attendee.telegram_chat_id:
+                    attendee.send_telegram_ticket()
+                if attendee.email:
+                    attendee.send_email_ticket()
+                    
+                imported_count += 1
+                
+            return JsonResponse({'success': True, 'count': imported_count})
             
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
