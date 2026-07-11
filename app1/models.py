@@ -97,7 +97,7 @@ class Attendee(models.Model):
         
         # قراءة قالب الـ HTML وتحويله إلى نصوص مدعومة للإيميلات
         # تأكد من وضع الملف بداخل المجلد الصحيح: app1/templates/app1/emails/ticket_email.html
-        html_content = render_to_string('app1/emails/ticket_email.html', context)
+        html_content = render_to_string('ticket_email.html', context)
         text_content = strip_tags(html_content) 
         
         email_message = EmailMultiAlternatives(
