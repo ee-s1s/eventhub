@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>البوابة الذكية - {{ event.title }}</title>
     
-    <!-- استدعاء خط Cairo الاحترافي وأيقونات FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
     
-    <!-- مكتبة HTML5-QRCode لقراءة الـ QR باحترافية وسرعة -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
@@ -49,7 +47,6 @@
             gap: 25px;
         }
 
-        /* الهيدر البانورامي */
         .panoramic-header {
             background: radial-gradient(circle at top left, rgba(6, 182, 212, 0.1), transparent), var(--surface-card);
             border: 1px solid var(--border-glow);
@@ -81,7 +78,6 @@
         }
         .btn-back-dashboard:hover { background: var(--surface-inner); color: var(--neon-cyan); border-color: var(--neon-cyan); }
 
-        /* منطقة الكاميرا الرئيسية والمسح الضوئي */
         .scanner-grid {
             display: grid;
             grid-template-columns: 1.2fr 1fr;
@@ -99,7 +95,6 @@
             overflow: hidden;
         }
 
-        /* الإطار المستقبلي حول عدسة الكاميرا */
         .camera-wrapper {
             position: relative;
             border-radius: 12px;
@@ -116,7 +111,6 @@
         }
         #reader video { object-fit: cover !important; }
 
-        /* خط الليزر المتحرك للمسح */
         .laser-line {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 3px;
@@ -133,7 +127,6 @@
             100% { top: 0%; }
         }
 
-        /* شاشة عرض النتائج والملاحظات اللحظية */
         .feedback-hub {
             background: var(--surface-card);
             border: 1px solid var(--border-subtle);
@@ -161,7 +154,6 @@
         .status-display-title { font-size: 18px; font-weight: 800; margin: 0 0 8px 0; color: var(--text-glow); }
         .status-display-subtitle { font-size: 13px; color: var(--text-dim); margin: 0; max-width: 240px; line-height: 1.6; }
 
-        /* الأنماط المتغيرة للنتائج (نجاح، خروج، خطأ) */
         .state-success .status-display-icon { background: rgba(16, 185, 129, 0.1); color: var(--neon-emerald); border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); transform: scale(1.1); }
         .state-success .status-display-title { color: var(--neon-emerald); }
 
@@ -175,7 +167,6 @@
 <body>
 
 <div class="workspace">
-    <!-- البانوراما هيدر -->
     <div class="panoramic-header">
         <div class="header-meta">
             <h1>عدسة المسح الآلي الذكي</h1>
@@ -186,10 +177,7 @@
         </a>
     </div>
 
-    <!-- شبكة تشغيل البوابة الخلفية والكاميرا -->
     <div class="scanner-grid">
-        
-        <!-- الكاميرا المستقلة -->
         <div class="camera-viewport-card">
             <div class="camera-wrapper">
                 <div class="laser-line"></div>
@@ -197,7 +185,6 @@
             </div>
         </div>
 
-        <!-- مركز التغذية الراجعة الفوري للنتائج -->
         <div class="feedback-hub" id="feedbackHub">
             <div class="status-display-icon" id="statusIcon">
                 <i class="fa-solid fa-qrcode"></i>
@@ -205,30 +192,34 @@
             <h3 class="status-display-title" id="statusTitle">في انتظار المسح...</h3>
             <p class="status-display-subtitle" id="statusSubtitle">ضع كود الـ QR الخاص بالتذكرة أمام الكاميرا ليتم تسجيل الحضور تلقائياً فوراً.</p>
         </div>
-
     </div>
 </div>
 
 <script>
-    let isProcessing = false; // لمنع تكرار القراءة في نفس الأجزاء من الثانية
+    let isProcessing = false;
 
-    // دالة إرسال الكود المستخرج إلى واجهة الـ API ومعالجة النتيجة فورياً دون الانتقال لصفحة أخرى
-    function handleScannedCode(ticketCode) {
+    function handleScannedCode(decodedText) {
         if (isProcessing) return;
         isProcessing = true;
+
+        let ticketCode = decodedText.trim();
+        if (ticketCode.includes('/verify/')) {
+            const parts = ticketCode.split('/verify/');
+            if (parts.length > 1) {
+                ticketCode = parts[1].replace(/\//g, '');
+            }
+        }
 
         const feedbackHub = document.getElementById('feedbackHub');
         const statusIcon = document.getElementById('statusIcon');
         const statusTitle = document.getElementById('statusTitle');
         const statusSubtitle = document.getElementById('statusSubtitle');
 
-        // تحديث المظهر لحالة المعالجة المؤقتة
         feedbackHub.className = "feedback-hub";
         statusIcon.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin" style="color: var(--neon-cyan)"></i>`;
         statusTitle.innerText = "جاري التحقق من الكود...";
         statusSubtitle.innerText = "يتم مراجعة قاعدة البيانات اللحظية الآن.";
 
-        // إرسال الطلب المباشر للـ API الذي أعددناه مسبقاً في الـ URL المنظم
         fetch(`/attendee/${ticketCode}/toggle/`, {
             method: 'POST',
             headers: {
@@ -244,13 +235,11 @@
         .then(data => {
             if (data.success) {
                 if (data.status === "checked_in") {
-                    // حالة الدخول الناجح
                     feedbackHub.className = "feedback-hub state-success";
-                    statusIcon.innerHTML = `<i class="fa-solid fa-shield-check"></i>`;
+                    statusIcon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
                     statusTitle.innerText = "✅ تم تسجيل الدخول";
                     statusSubtitle.innerText = `أهلاً بك مجدداً: ${data.attendee_name}\nوقت الدخول: ${data.check_in_time}`;
                 } else {
-                    // حالة الخروج الناجح
                     feedbackHub.className = "feedback-hub state-out";
                     statusIcon.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i>`;
                     statusTitle.innerText = "👋 تم تسجيل الخروج";
@@ -261,36 +250,31 @@
             }
         })
         .catch(err => {
-            // حالة الكود غير الصالح أو غير المسجل
             feedbackHub.className = "feedback-hub state-error";
             statusIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
             statusTitle.innerText = "❌ رمز غير صالح";
             statusSubtitle.innerText = "هذا الرمز التذكاري غير مسجل بالنظام أو تم حذفه مسبقاً.";
         })
         .finally(() => {
-            // إعادة ضبط الحساس بعد ثانيتين للسماح بمسح البطاقة التالية
             setTimeout(() => {
                 isProcessing = false;
             }, 2500);
         });
     }
 
-    // تشغيل كاشف الكاميرا تلقائياً فور تحميل الواجهة
     function startScanner() {
         const html5QrcodeScanner = new Html5Qrcode("reader");
         
         html5QrcodeScanner.start(
-            { facingMode: "environment" }, // تشغيل الكاميرا الخلفية للهواتف
+            { facingMode: "environment" },
             {
-                fps: 10,       // عدد الفريمات للفحص بالثانية
-                qrbox: { width: 250, height: 250 } // تحديد منطقة القراءة البؤرية
+                fps: 10,       
+                qrbox: { width: 250, height: 250 }
             },
             (decodedText, decodedResult) => {
-                // عند نجاح قراءة الـ QR النصي يتم تمريره فوراً للـ API
                 handleScannedCode(decodedText);
             },
             (errorMessage) => {
-                // التغاضي عن أخطاء الفريمات العادية عند عدم وجود كود QR في الإطار
             }
         ).catch(err => {
             console.error("خطأ في تشغيل الكاميرا: ", err);
@@ -299,7 +283,6 @@
         });
     }
 
-    // إطلاق العدسة الذكية فور جاهزية الصفحة
     document.addEventListener("DOMContentLoaded", startScanner);
 </script>
 
