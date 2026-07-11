@@ -60,6 +60,36 @@
         .header-meta p { margin: 6px 0 0 0; color: var(--text-dim); font-size: 13px; }
         .header-meta strong { color: var(--neon-cyan); }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-trigger-scan {
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.05);
+        }
+        .btn-trigger-scan:hover { 
+            background: rgba(6, 182, 212, 0.1); 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(6, 182, 212, 0.2); 
+        }
+
         .btn-trigger-add {
             background: linear-gradient(135deg, var(--neon-cyan), #0891b2);
             color: #030712;
@@ -77,7 +107,13 @@
         }
         .btn-trigger-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(6, 182, 212, 0.3); filter: brightness(1.1); }
 
-        /* شريط الإحصائيات */
+        /* شريط الإحصائيات الكلي */
+        .stats-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .stats-bar {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -87,55 +123,63 @@
         .counter-card {
             background: var(--surface-card);
             border: 1px solid var(--border-subtle);
-            padding: 20px;
+            padding: 22px;
             border-radius: 16px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
         }
-        .counter-card i { font-size: 28px; }
-        .counter-card.total i { color: var(--neon-cyan); }
-        .counter-card.in i { color: var(--neon-emerald); }
-        .counter-card.out i { color: var(--neon-amber); }
-        .counter-card.pct i { color: var(--neon-rose); }
+        .counter-card:hover {
+            transform: translateY(-3px);
+        }
+        .counter-card i { font-size: 32px; }
+        .counter-card.total { border-left: 3px solid var(--neon-cyan); }
+        .counter-card.in { border-left: 3px solid var(--neon-emerald); }
+        .counter-card.out { border-left: 3px solid var(--neon-amber); }
+        .counter-card.pct { border-left: 3px solid var(--neon-rose); }
         
-        .counter-info span { display: block; font-size: 12px; color: var(--text-dim); font-weight: 600; }
-        .counter-info strong { font-size: 24px; font-weight: 800; color: #fff; }
+        .counter-card.total i { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(6, 182, 212, 0.4); }
+        .counter-card.in i { color: var(--neon-emerald); text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+        .counter-card.out i { color: var(--neon-amber); text-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+        .counter-card.pct i { color: var(--neon-rose); text-shadow: 0 0 10px rgba(244, 63, 94, 0.4); }
+        
+        .counter-info span { display: block; font-size: 13px; color: var(--text-dim); font-weight: 600; margin-bottom: 4px; }
+        .counter-info strong { font-size: 26px; font-weight: 800; color: #fff; }
 
         .progress-container {
-            grid-column: 1 / -1;
             background: rgba(255,255,255,0.02);
             border-radius: 8px;
-            height: 6px;
+            height: 8px;
             overflow: hidden;
             border: 1px solid var(--border-subtle);
-            margin-top: -5px;
         }
         .progress-bar {
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, var(--neon-cyan), var(--neon-emerald));
-            box-shadow: 0 0 10px var(--neon-emerald);
-            transition: width 0.5s ease-in-out;
+            box-shadow: 0 0 12px var(--neon-emerald);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .operations-hub {
             background: var(--surface-card);
             border: 1px solid var(--border-subtle);
             border-radius: 16px;
-            padding: 15px 20px;
+            padding: 18px 24px;
             display: flex;
             justify-content: flex-start;
             align-items: center;
             gap: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
         }
 
         .btn-action-hub {
             background: var(--surface-inner);
             border: 1px solid var(--border-subtle);
             color: var(--text-glow);
-            padding: 10px 20px;
+            padding: 10px 22px;
             border-radius: 10px;
             font-size: 13px;
             font-weight: 700;
@@ -168,10 +212,10 @@
         .search-engine-box { position: relative; flex: 1; min-width: 250px; }
         .search-engine-box i { position: absolute; right: 18px; top: 16px; color: var(--text-dim); }
         .search-engine-input { width: 100%; padding: 14px 48px 14px 18px; font-size: 13px; background: var(--canvas-bg); border: 1px solid var(--border-subtle); border-radius: 10px; color: white; box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: all 0.3s; }
-        .search-engine-input:focus { border-color: var(--neon-cyan); outline: none; }
+        .search-engine-input:focus { border-color: var(--neon-cyan); outline: none; box-shadow: 0 0 15px rgba(6, 182, 212, 0.1); }
 
         .filter-tabs { display: flex; background: var(--canvas-bg); padding: 5px; border-radius: 10px; border: 1px solid var(--border-subtle); gap: 5px; }
-        .tab-btn { background: none; border: none; color: var(--text-dim); padding: 8px 16px; border-radius: 7px; font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .tab-btn { background: none; border: none; color: var(--text-dim); padding: 8px 18px; border-radius: 7px; font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
         .tab-btn.active { background: var(--surface-inner); color: var(--neon-cyan); box-shadow: 0 0 10px rgba(6, 182, 212, 0.1); }
 
         .cyber-list { display: flex; flex-direction: column; gap: 12px; }
@@ -181,12 +225,12 @@
             padding: 16px 20px;
             border-radius: 12px;
             display: grid;
-            grid-template-columns: 1.8fr 1.1fr 1.3fr 1.1fr auto auto;
+            grid-template-columns: 1.8fr 1.1fr 1.5fr 1.4fr auto auto;
             align-items: center;
             gap: 15px;
             transition: all 0.3s ease;
         }
-        .cyber-item:hover { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.01); transform: translateX(-4px); }
+        .cyber-item:hover { border-color: rgba(6, 182, 212, 0.3); background: rgba(255, 255, 255, 0.01); transform: translateX(-4px); }
         @media(max-width: 1000px) { .cyber-item { grid-template-columns: 1fr; gap: 12px; text-align: center; } }
 
         .cyber-item.pulse-green { animation: pulseGreen 1s ease-out; }
@@ -278,45 +322,52 @@
 <body>
 
 <div class="workspace">
-    <!-- البانوراما هيدر -->
+    <!-- البانوراما هيدر المحدث -->
     <div class="panoramic-header">
         <div class="header-meta">
             <h1>إدارة الحضور الذكي والمسح</h1>
             <p>الفعالية الخاضعة للرقابة: <strong>{{ event.title }}</strong></p>
         </div>
-        <button class="btn-trigger-add" onclick="openAddModal()">
-            <i class="fa-solid fa-user-plus"></i> إضافة مدعو جديد
-        </button>
+        <div class="header-actions">
+                <a href="/{{ event.id }}/scanner/" class="btn-trigger-scan">
+                <i class="fa-solid fa-camera-retro"></i> فتح عدسة المسح (Scanner)
+            </a>
+            <button class="btn-trigger-add" onclick="openAddModal()">
+                <i class="fa-solid fa-user-plus"></i> إضافة مدعو جديد
+            </button>
+        </div>
     </div>
 
-    <!-- شريط الإحصائيات -->
-    <div class="stats-bar">
-        <div class="counter-card total">
-            <i class="fa-solid fa-users"></i>
-            <div class="counter-info">
-                <span>إجمالي المقيدين</span>
-                <strong><span id="total-count">0</span> شخص</strong>
+    <!-- شريط الإحصائيات المحسن برمجياً وبصرياً -->
+    <div class="stats-wrapper">
+        <div class="stats-bar">
+            <div class="counter-card total">
+                <i class="fa-solid fa-users"></i>
+                <div class="counter-info">
+                    <span>إجمالي المقيدين</span>
+                    <strong><span id="total-count">0</span> شخص</strong>
+                </div>
             </div>
-        </div>
-        <div class="counter-card in">
-            <i class="fa-solid fa-door-open"></i>
-            <div class="counter-info">
-                <span>بالداخل الآن</span>
-                <strong><span id="checked-in-count">0</span> شخص</strong>
+            <div class="counter-card in">
+                <i class="fa-solid fa-door-open"></i>
+                <div class="counter-info">
+                    <span>بالداخل الآن</span>
+                    <strong><span id="checked-in-count">0</span> شخص</strong>
+                </div>
             </div>
-        </div>
-        <div class="counter-card out">
-            <i class="fa-solid fa-door-closed"></i>
-            <div class="counter-info">
-                <span>المتبقي بالخارج</span>
-                <strong><span id="checked-out-count">0</span> شخص</strong>
+            <div class="counter-card out">
+                <i class="fa-solid fa-door-closed"></i>
+                <div class="counter-info">
+                    <span>المتبقي بالخارج</span>
+                    <strong><span id="checked-out-count">0</span> شخص</strong>
+                </div>
             </div>
-        </div>
-        <div class="counter-card pct">
-            <i class="fa-solid fa-chart-pie"></i>
-            <div class="counter-info">
-                <span>نسبة الحضور</span>
-                <strong><span id="attendance-ratio">0%</span></strong>
+            <div class="counter-card pct">
+                <i class="fa-solid fa-chart-pie"></i>
+                <div class="counter-info">
+                    <span>نسبة الحضور</span>
+                    <strong><span id="attendance-ratio">0%</span></strong>
+                </div>
             </div>
         </div>
         <div class="progress-container">
@@ -364,7 +415,6 @@
                     <i class="fa-solid fa-phone-flip" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>{{ guest.phone|default:"---" }}
                 </div>
 
-                <!-- إضافة عرض الإيميل في السطر -->
                 <div class="client-email" id="email-td-{{ guest.id }}">
                     <i class="fa-solid fa-envelope" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>{{ guest.email|default:"---" }}
                 </div>
@@ -440,7 +490,6 @@
                     <label>رقم الجوال أو الحساب الفعال:</label>
                     <input type="text" name="phone" class="custom-input" placeholder="مثال: 967777777777">
                 </div>
-                <!-- إضافة حقل البريد الإلكتروني في فورم الإضافة -->
                 <div class="form-group">
                     <label>البريد الإلكتروني (إرسال التذكرة تلقائياً):</label>
                     <input type="email" name="email" class="custom-input" placeholder="example@domain.com">
@@ -471,7 +520,6 @@
                 <label>رقم هاتف الاتصال والمشاركة:</label>
                 <input type="text" id="modal-phone-input" class="custom-input">
             </div>
-            <!-- إضافة حقل البريد الإلكتروني في فورم التعديل -->
             <div class="form-group">
                 <label>البريد الإلكتروني الحركي:</label>
                 <input type="email" id="modal-email-input" class="custom-input">
@@ -485,7 +533,6 @@
 </div>
 
 <script>
-    // دالة الحساب المتكاملة وإصلاح الإحصائيات الفورية
     function calculateLiveStats() {
         let rows = document.querySelectorAll('#guestsTable .cyber-item');
         let total = rows.length;
@@ -514,17 +561,16 @@
         let currentName = document.getElementById(`name-td-${id}`).innerText;
         let row = document.getElementById(`row-${id}`);
         let currentPhone = row.getAttribute('data-phone') || '';
-        let currentEmail = row.getAttribute('data-email') || ''; // التقاط الإيميل الحالي
+        let currentEmail = row.getAttribute('data-email') || '';
 
         document.getElementById('modal-attendee-id').value = id;
         document.getElementById('modal-name-input').value = currentName;
         document.getElementById('modal-phone-input').value = currentPhone;
-        document.getElementById('modal-email-input').value = currentEmail; // تمريره للإنبوت
+        document.getElementById('modal-email-input').value = currentEmail;
         document.getElementById('editModal').classList.add('active');
     }
     function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
 
-    // البحث والفلترة الذكية الشاملة
     let currentFilter = 'all';
     document.getElementById('searchInput').addEventListener('keyup', applySearchAndFilter);
 
@@ -542,7 +588,7 @@
         rows.forEach(row => {
             let name = row.getAttribute('data-name') ? row.getAttribute('data-name').toLowerCase() : '';
             let phone = row.getAttribute('data-phone') ? row.getAttribute('data-phone').toLowerCase() : '';
-            let email = row.getAttribute('data-email') ? row.getAttribute('data-email').toLowerCase() : ''; // إضافة فلترة البريد
+            let email = row.getAttribute('data-email') ? row.getAttribute('data-email').toLowerCase() : '';
             let code = row.getAttribute('data-code') ? row.getAttribute('data-code').toLowerCase() : '';
             let status = row.getAttribute('data-checked');
 
@@ -553,7 +599,6 @@
         });
     }
 
-    // زر تبديل حالة الحضور البوابية (دخول/خروج)
     function toggleCheckin(ticketCode, guestId) {
         let btn = document.getElementById(`status-btn-${guestId}`);
         let textSpan = document.getElementById(`status-text-${guestId}`);
@@ -589,7 +634,6 @@
         }).catch(err => console.error("Error toggle:", err));
     }
 
-    // معالجة طلب الاستيراد الموحد مع إرسال معرف الفعالية
     function handleExcelImport(inputElement) {
         if (inputElement.files.length === 0) return;
         let file = inputElement.files[0];
@@ -613,7 +657,6 @@
         }).catch(err => console.error(err));
     }
 
-    // تصدير ملف البيانات بصيغة CSV (تحديث ليشمل البريد الإلكتروني)
     function exportToCSV() {
         let rows = document.querySelectorAll('#guestsTable .cyber-item');
         let csvContent = "\uFEFFالاسم,رقم الهاتف,البريد الإلكتروني,الكود الخاص,الحالة الحاليّة\n";
@@ -636,7 +679,6 @@
         document.body.removeChild(link);
     }
 
-    // طباعة الـ QR والمستند بشكل معزول كلياً
     function printThermalTicket(name, code, qrUrl) {
         let printSection = document.getElementById('print-section');
         printSection.innerHTML = `
@@ -647,67 +689,6 @@
             <p>يرجى إبراز الكود عند البوابة</p>
         `;
         window.print();
-    }
-
-    // إرسال طلب التعديل إلى السيرفر (محدث لمعالجة الإيميل وإصلاح الأخطاء)
-    function submitEditModal() {
-        let id = document.getElementById('modal-attendee-id').value;
-        let newName = document.getElementById('modal-name-input').value;
-        let newPhone = document.getElementById('modal-phone-input').value;
-        let newEmail = document.getElementById('modal-email-input').value; // التقاط المدخل الجديد
-
-        if (newName.trim() === "") return;
-
-        let formData = new FormData();
-        formData.append('name', newName);
-        formData.append('phone', newPhone);
-        formData.append('email', newEmail); // إرساله للسيرفر
-
-        fetch(`/attendee/${id}/edit/`, {
-            method: 'POST',
-            headers: {'X-CSRFToken': '{{ csrf_token }}'},
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // تحديث النصوص في الواجهة تلقائياً
-                document.getElementById(`name-td-${id}`).innerText = data.name;
-                document.getElementById(`phone-td-${id}`).innerHTML = data.phone ? `<i class="fa-solid fa-phone-flip" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>${data.phone}` : '---';
-                document.getElementById(`email-td-${id}`).innerHTML = data.email ? `<i class="fa-solid fa-envelope" style="font-size: 11px; margin-left: 5px; color: var(--text-dim);"></i>${data.email}` : '---';
-                
-                // تحديث الـ Data Attributes للبحث المباشر الفوري
-                let row = document.getElementById(`row-${id}`);
-                row.setAttribute('data-name', data.name);
-                row.setAttribute('data-phone', data.phone || '');
-                row.setAttribute('data-email', data.email || '');
-                
-                closeEditModal();
-                calculateLiveStats();
-                applySearchAndFilter();
-            } else {
-                alert("حدث خطأ أثناء تعديل البيانات.");
-            }
-        }).catch(err => console.error(err));
-    }
-
-    // إرسال طلب الحذف
-    function deleteAttendee(id) {
-        if (confirm("هل أنت متأكد تماماً من شطب هذا الحاضر نهائياً؟")) {
-            fetch(`/attendee/${id}/delete/`, {
-                method: 'POST',
-                headers: {'X-CSRFToken': '{{ csrf_token }}'}
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`row-${id}`).remove();
-                    calculateLiveStats();
-                } else {
-                    alert("فشل الحذف من السيرفر.");
-                }
-            }).catch(err => console.error(err));
-        }
     }
 
     document.addEventListener("DOMContentLoaded", function() {
