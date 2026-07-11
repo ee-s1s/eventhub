@@ -6,15 +6,19 @@ from io import BytesIO
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.apps import apps
 
 def generate_short_ticket_code():
     """توليد كود عشوائي فريد مكون من 8 خانات (حروف كبيرة وأرقام)"""
     length = 8
     chars = string.ascii_uppercase + string.digits
+    # استخدام تطبيقات Django لجلب الموديل ديناميكياً لتفادي خطأ الترتيب البرمجي NameError
+    AttendeeModel = apps.get_model('app1', 'Attendee')
+    
     while True:
         code = ''.join(random.choices(chars, k=length))
         # التأكد من أن الكود غير مكرر في قاعدة البيانات
-        if not Attendee.objects.filter(ticket_code=code).exists():
+        if not AttendeeModel.objects.filter(ticket_code=code).exists():
             return code
 
 
@@ -86,33 +90,30 @@ class Attendee(models.Model):
             
         subject = f"تذكرتك الرسمية لفعالية {self.event.title} 🎫"
         
-        # البيانات الممررة لتصميم قالب الـ HTML
+        # تمرير كائن الـ attendee بالكامل لتوفير المرونة داخل كود الـ HTML المحدث
         context = {
-            'name': self.name,
-            'event_title': self.event.title,
-            'date': self.event.date.strftime('%Y-%m-%d %H:%M'),
-            'location': self.event.location_name,
-            'ticket_code': self.ticket_code,
+            'attendee': self,
         }
         
         # قراءة قالب الـ HTML وتحويله إلى نصوص مدعومة للإيميلات
-        html_content = render_to_string('ticket_email.html', context)
+        # تأكد من وضع الملف بداخل المجلد الصحيح: app1/templates/app1/emails/ticket_email.html
+        html_content = render_to_string('app1/emails/ticket_email.html', context)
         text_content = strip_tags(html_content) 
         
         email_message = EmailMultiAlternatives(
             subject, 
             text_content, 
-            'no-reply@yourdomain.com',  # بريد المرسل (يمكن ضبطه في settings.py)
+            'no-reply@yourdomain.com',  # يمكنك تعديلها أو ترك الـ backend يسحبها من settings
             [self.email]
         )
         email_message.attach_alternative(html_content, "text/html")
         
-        # تضمين صورة الـ QR كود لتفتح بداخل جسم الإيميل مباشرة عبر المعرف cid
+        # تضمين صورة الـ QR كود لتفتح بداخل جسم الإيميل مباشرة عبر المعرف الموحد qr_code_image
         if self.qr_code:
             try:
                 self.qr_code.seek(0)
                 mime_image = MIMEImage(self.qr_code.read())
-                mime_image.add_header('Content-ID', '<qr_code_cid>')
+                mime_image.add_header('Content-ID', '<qr_code_image>')
                 mime_image.add_header('Content-Disposition', 'inline', filename=f"qr-{self.ticket_code}.png")
                 email_message.attach(mime_image)
             except Exception as e:

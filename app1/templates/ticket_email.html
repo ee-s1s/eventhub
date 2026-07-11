@@ -4,16 +4,40 @@
     <meta charset="UTF-8">
     <title>تذكرتك المعتمدة للفعالية</title>
 </head>
-<body style="font-family: sans-serif; text-align: center; padding: 20px; background-color: #f4f4f5;">
-    <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-        <h2 style="color: #06b6d4;">مرحباً بك في الفعالية</h2>
-        <p>عزيزي الحاضر، تم تسجيل بياناتك بنجاح.</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <p><strong>كود التذكرة الخاص بك هو:</strong></p>
-        <div style="font-size: 24px; font-weight: bold; color: #10b981; background: #f0fdf4; padding: 10px; display: inline-block; border-radius: 6px; letter-spacing: 1px;">
+<body style="font-family: Arial, sans-serif; text-align: center; padding: 30px; background-color: #f4f4f5; direction: rtl;">
+    
+    <div style="max-width: 500px; margin: 0 auto; background: #ffffff; padding: 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e4e4e7;">
+        
+        <!-- العنوان واضح وبارز -->
+        <h2 style="color: #06b6d4; font-size: 24px; margin-top: 0; margin-bottom: 10px;">مرحباً بك في الفعالية</h2>
+        
+        <!-- اسم الحاضر والنص بلون داكن ومقروء -->
+        <p style="color: #1f2937; font-size: 16px; font-weight: bold; margin-bottom: 5px;">عزيزي المدعو: {{ attendee.name }}</p>
+        <p style="color: #4b5563; font-size: 15px; margin-top: 0;">تم تسجيل بياناتك بنجاح في الفعالية الحالية.</p>
+        
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        
+        <!-- كود التذكرة بلون داكن وواضح جداً -->
+        <p style="color: #374151; font-size: 15px; font-weight: bold; margin-bottom: 10px;">كود التذكرة الخاص بك هو:</p>
+        <div style="font-size: 26px; font-weight: bold; color: #0f766e; background: #ccfbf1; padding: 12px 25px; display: inline-block; border-radius: 6px; letter-spacing: 1px; border: 1px solid #99f6e4; margin-bottom: 25px;">
             {{ attendee.ticket_code }}
         </div>
-        <p style="font-size: 12px; color: #666; margin-top: 20px;">يرجى إبراز هذا الكود أو رمز الـ QR المرفق عند البوابة لتسهيل عملية الدخول.</p>
+
+        <!-- عرض الـ QR Code بداخل الكرت الأبيض ليكون واضحاً ومباشراً -->
+        {% if attendee.qr_code %}
+        <div style="margin-top: 10px; margin-bottom: 25px;">
+            <p style="color: #374151; font-size: 14px; font-weight: bold; margin-bottom: 10px;">رمز الـ QR للدخول السريع:</p>
+            <div style="display: inline-block; background: #ffffff; padding: 10px; border: 1px solid #e4e4e7; border-radius: 8px;">
+                <img src="cid:qr_code_image" alt="QR Code" width="150" height="150" style="display: block;">
+            </div>
+        </div>
+        {% endif %}
+        
+        <p style="font-size: 13px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">
+            يرجى إبراز هذا الكود النصي أو رمز الـ QR عند البوابة لتسهيل عملية الدخول المباشر.
+        </p>
+        
     </div>
+    
 </body>
 </html>
